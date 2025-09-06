@@ -15,18 +15,15 @@
 
 
 	function sjis($str, $normalize = false) {
-		$str	= @iconv("shift-jis", "utf8", trim($str));
-		if ($normalize && class_exists("Normalizer")) {
-			return Normalizer::normalize($str, Normalizer::NFKC);
-		} elseif ($normalize) {
-			throw new \Exception("Can't normalize SJIS fullwidth, install php5-intl or set normalize=false");
-		}
+		// Needs Multibyte extension enabled.
+		$str	= mb_convert_encoding($str, "UTF-8", "SJIS");
 		return $str;
 
 	}
 
-	function tosjis($str) {
-		return iconv("utf8", "shift-jis", trim($str));
+	function tosjis($str)
+	{
+		return mb_convert_encoding($str, "SJIS", "UTF-8");
 	}
 
 
