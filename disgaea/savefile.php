@@ -50,10 +50,10 @@
 					($i >= 0x0030)
 				) {
 					// Key applies to the 'key' and 'data' areas only
-					$v	= ord($saveData{$i}) ^ ord($key{$i % $keyLen});
+					$v	= ord($saveData[$i]) ^ ord($key[$i % $keyLen]);
 				} else {
 					// Raw data
-					$v	= ord($saveData{$i});
+					$v	= ord($saveData[$i]);
 				}
 
 				$o	.= chr($v);

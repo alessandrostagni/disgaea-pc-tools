@@ -366,7 +366,7 @@
 			$map	= array();
 			$l		= strlen($this->_data);
 			for ($i = 0; $i < $l; $i++) {
-				$map[$i]	= array('v' => sprintf("%02x", ord($this->_data{$i})), 'type' => null, 'n' => 0);
+				$map[$i]	= array('v' => sprintf("%02x", ord($this->_data[$i])), 'type' => null, 'n' => 0);
 			}
 
 			$types	= array();

@@ -148,7 +148,7 @@
 			if ($pos > strlen($from) || $pos < 0) {
 				throw new Exception("Asked to get byte at position $pos (outside range 0-". strlen($from) .")");
 			}
-			return ord($from{$pos});
+			return ord($from[$pos]);
 		}
 
 		protected function _cb($o = 0) {
@@ -168,7 +168,7 @@
 				throw new Exception("Trying to write to byte outside of decompress area (ofs $ro)");
 			}
 
-			$this->_decompressed{$ro}	= chr($b);
+			$this->_decompressed[$ro]	= chr($b);
 			$this->_dp++;
 		}
 
@@ -202,12 +202,9 @@
 			$out	= "";
 
 			for ($p = 0; $p < $len; $p += $chunksize) {
-
 				$sz		= min($chunksize, $len - $p);
 				$out	.= chr($sz);
 				$out	.= substr($s, $p, $chunksize);
-
-
 			}
 
 			return $out;
