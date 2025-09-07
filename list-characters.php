@@ -15,7 +15,8 @@
 
 	foreach ($characters as $id => $character) {
         print("\n");
-        print($character);
+		print($character->getChunk('name'));
+        print($character->getChunk('class'));
         print("--------------------------------");
         print("\n\n");
 	}
