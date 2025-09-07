@@ -17,12 +17,14 @@
 	function sjis($str, $normalize = false) {
 		// Needs Multibyte extension enabled.
 		$str	= mb_convert_encoding($str, "UTF-8", "SJIS");
+		$str    = mb_convert_kana($str, 'a', 'UTF-8');
 		return $str;
 
 	}
 
 	function tosjis($str)
 	{
+		$str    = mb_convert_kana($str, 'A', 'UTF-8');
 		return mb_convert_encoding($str, "SJIS", "UTF-8");
 	}
 
