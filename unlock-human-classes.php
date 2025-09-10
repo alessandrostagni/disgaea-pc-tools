@@ -1,8 +1,10 @@
 <?php
+require_once("utils.php");
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Define the target directory for uploads
     $target_dir = "uploads/";
+    $processed_directory = "processed/";
     $uploadOk = 1;
 
     // Create the upload directory if it doesn't exist
@@ -20,31 +22,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Move the uploaded file to the target directory
         if (move_uploaded_file($file['tmp_name'], $target_path)) {
-            echo "The file ". htmlspecialchars(basename($file["name"])) ." has been uploaded successfully.";
-            
             // Process the file and modify it as needed
-            unlockAllClasses($hashed_filename, $target_dir);
+            ob_start();
+            echo "The file ". htmlspecialchars(basename($file["name"])) ." has been uploaded successfully.";
+            unlockAllClasses($hashed_filename, $target_dir, $processed_directory);
+            ob_end_clean();
 
             // Force download of the processed file
-            forceDownload($hashed_filename, $target_dir);
+            forceDownload($hashed_filename, $processed_directory);
         } else {
-            echo "Sorry, there was an error uploading your file.";
+            die("Sorry, there was an error uploading your file.");
         }
     } else {
-        echo "Error: " . $_FILES['uploaded_file']['error'];
+        die("Error: " . $_FILES['uploaded_file']['error']);
     }
 } else {
-    header('Location: upload.html');
+    header('Location: unlock-human-classes.html');
 }
 
-function unlockAllClasses($filename, $directory) {
-    if (!isset($filename)) {
+function addNewCharacter($saveData, $characters, $class, $level, $cloned) {
+    $charProperties = array('exp', 'equipment', 'name', 'unknown01', 'title', 'unknown02', 'unknown03', 'resistances', 'unknown04', 'skillexp', 'skills', 'skilllevel', 'currenthp', 'currentsp', 'stats', 'realstats', 'unknown05', 'mana', 'unknown06', 'weaponmasterylv', 'weaponmasteryrate', 'basestats', 'level', 'unknown07', 'class', 'class2', 'skilltree', 'unknown08', 'unknown09', 'unknown10', 'basejm', 'jm', 'basemv', 'mv', 'counter', 'senaterank');
+    $newCharIndex = null;
+    for($i=0; $i<count($characters); $i++) {
+        if(($characters[$i]->getChunk('name') == 'Reception' && $characters[$i]->getChunk('class') == 2918))
+        {
+            $newCharIndex = $i;
+            break;
+        }
+    }
+    if(is_null($newCharIndex))
+    {
+        die("Couldn't add character, there needs to be 6 or less characters present in your save file.\n\n");
+    }
+    else{
+        echo("Empty slot found at index $newCharIndex. Adding character... \n\n");
+    }
+    // Copy character in new slot
+    foreach ($charProperties as $charProperty) {
+        if($charProperty != 'equipment' && $charProperty != 'stats' && $charProperty != 'realstats' && $charProperty != 'basestats' && $charProperty != 'resistances' && $charProperty != 'skillexp' && $charProperty != 'skills' && $charProperty != 'skilllevel') {
+            $characters[$newCharIndex]->setChunk($charProperty, $characters[$cloned]->getChunk($charProperty));
+        }
+        $characters[$newCharIndex]->setChunk('class', $class);   // Set target class
+        $characters[$newCharIndex]->setChunk('level', $level);   // Set target level
+        $characters[$newCharIndex]->setChunk('currenthp', 1);   // Set hp to 1 to avoid overflow
+        $characters[$newCharIndex]->setChunk('currentsp', 1);   // Set sp to 1 to avoid overflow
+        $characters[$newCharIndex]->setChunk('weaponmasterylv', "aaaaaaaa");   // Set high mastery level to unlock all classes
+    }
+    $saveData->setChunk('charactercount', $saveData->getChunk('charactercount') + 1);
+}
+
+function unlockAllClasses($filename, $directory, $processed_directory) {
+    $fullPath = $directory . $filename;
+    if (!isset($fullPath)) {
 		die("Usage: <original-SAVExxx.DAT> \nLists characters in savefile");
-	} elseif (!file_exists($filename)) {
-		die("Filename $filename not found\n");
+	} elseif (!file_exists($fullPath)) {
+		die("Filename $fullPath not found\n");
 	}
 
-	$save		= new \Disgaea\SaveFile($filename);
+	$save		= new \Disgaea\SaveFile($fullPath);
 	$saveData	= $save->getSaveObject();
 	$characters			= $saveData->getChunk('characters'); // Add level 200 Brawler Male
 
@@ -75,22 +110,17 @@ function unlockAllClasses($filename, $directory) {
     addNewCharacter($saveData, $characters, 1114, 200, 0); // Add level 200 Prism Mage
 
     // Increment number of characters in current party
-    print($saveData->getChunk('charactercount'));
-    print("-----------------------\n\n");
     $save->updateSaveFile($saveData);
-	print "Writing save file...\n";
-	$save->writeSaveFile($directory . 'processed_' . $filename);
-	print "Done\n";
-	print "\n\n";
+	$save->writeSaveFile($processed_directory . 'processed_' . $filename);
 }
 
-function forceDownload($filename, $directory) {
+function forceDownload($filename, $processed_directory) {
     // Set headers for forcing a download
     header('Content-Type: application/octet-stream');
     header("Content-Transfer-Encoding: binary");
     header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
 
-    readfile($directory . 'processed_' . $filename);
+    readfile($processed_directory . 'processed_' . $filename);
 }
-
+closelog();
 ?>

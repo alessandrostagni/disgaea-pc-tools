@@ -36,9 +36,11 @@
 			$this->_dp	= 0;
 
 			$dataLen	= strlen($this->_compressed);
-
+			ob_start();
 			$this->_log(1, sprintf("Decompressing %08X bytes of data...\n", $dataLen));
 			$this->_log(1, sprintf("Expected size %08X\n", strlen($this->_decompressed)));
+			ob_end_clean();
+
 
 			while ($this->_cp < $dataLen) {
 
