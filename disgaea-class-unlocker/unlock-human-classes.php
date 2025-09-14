@@ -15,6 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Check if file was uploaded without errors
     if (isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == UPLOAD_ERR_OK) {
         $file = $_FILES['uploaded_file'];
+
+        // Get the mana input from the form
+        $mana = $_POST['mana'];
+        
+        if ($mana != '' && (!is_numeric($mana) || $mana < 0 || $mana > 999999)) {
+            die("Invalid number. Please enter a number between 0 and 999999, or leave the field empty.");
+        }
         
         // Generate a unique filename with hash
         $hashed_filename = md5(uniqid()) . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -25,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Process the file and modify it as needed
             ob_start();
             echo "The file ". htmlspecialchars(basename($file["name"])) ." has been uploaded successfully.";
-            unlockAllClasses($hashed_filename, $target_dir, $processed_directory);
+            unlockAllClasses($hashed_filename, $target_dir, $processed_directory, $mana);
             ob_end_clean();
 
             // Force download of the processed file
@@ -71,7 +78,7 @@ function addNewCharacter($saveData, $characters, $class, $level, $cloned) {
     $saveData->setChunk('charactercount', $saveData->getChunk('charactercount') + 1);
 }
 
-function unlockAllClasses($filename, $directory, $processed_directory) {
+function unlockAllClasses($filename, $directory, $processed_directory, $mana) {
     $fullPath = $directory . $filename;
     if (!isset($fullPath)) {
 		die("Usage: <original-SAVExxx.DAT> \nLists characters in savefile");
@@ -81,7 +88,10 @@ function unlockAllClasses($filename, $directory, $processed_directory) {
 
 	$save		= new \Disgaea\SaveFile($fullPath);
 	$saveData	= $save->getSaveObject();
-	$characters			= $saveData->getChunk('characters'); // Add level 200 Brawler Male
+	$characters			= $saveData->getChunk('characters');
+    if($mana != '') {
+        $characters[0] -> setChunk('mana', $mana);
+    }
 
     addNewCharacter($saveData, $characters, 1010, 200, 0); // Add level 200 Brawler Male
     addNewCharacter($saveData, $characters, 1020, 200, 0); // Add level 200 Brawler Female
@@ -122,5 +132,4 @@ function forceDownload($filename, $processed_directory) {
 
     readfile($processed_directory . 'processed_' . $filename);
 }
-closelog();
 ?>
