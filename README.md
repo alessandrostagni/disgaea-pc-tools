@@ -23,6 +23,12 @@ Editing the save file is doable. See `inject.php` if you want to edit the raw fi
 
 Some save files are included in `saves/` for ease of making sure things work.
 
+## Disgaea online class unlocker
+
+A website has been made which unlocks all human classes to a given savefile:
+[Disgaea class unlocker](https://musubi.site:8443/disgaea-unlock-classes.html)
+
+All the code is contained under the "[disgaea-class-unlocker](disgaea-class-unlocker)" folder.
 
 ## Contributing
 
